@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const userRepo = require('../repositories/userRepository');
+const dotenv = require('dotenv');
+
+dotenv.config();
 
 // Email Config
 const transporter = nodemailer.createTransport({
@@ -58,7 +61,7 @@ const loginUser = async (email, password) => {
 
   // Logic: Generate Token
   const payload = { id: user._id, name: user.name };
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1y' });
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
 
   return { token: "Bearer " + token, user };
 };

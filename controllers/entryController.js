@@ -6,6 +6,7 @@ const getUserEntries = async (req, res) => {
     const entries = await entryService.getEntries(req.params.userId);
     res.json(entries);
   } catch (err) {
+    console.error("❌ ERROR in getUserEntries:", err);
     res.status(500).json({ message: err.message });
   }
 };
