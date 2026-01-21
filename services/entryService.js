@@ -5,8 +5,9 @@ const getEntries = async (userId) => {
 };
 
 const saveEntry = async (userId, entryData) => {
-  const { date, rating, log } = entryData;
-  return await entryRepo.upsertEntry(userId, date, { rating, log });
+  const { date, rating, log, images } = entryData; // <--- Destructure images
+  // Pass images to the repository
+  return await entryRepo.upsertEntry(userId, date, { rating, log, images });
 };
 
 const getStatistics = async (userId) => {

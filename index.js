@@ -5,6 +5,9 @@ const dotenv = require('dotenv');
 const entryRoutes = require('./routes/entries');
 const authRoutes = require('./routes/auth');
 const passport = require('passport'); // 1. Import Passport
+const path = require('path'); // Import path
+
+
 dotenv.config();
 require('./config/passport')(passport);
 
@@ -14,6 +17,7 @@ const app = express();
 app.use(express.json()); // Parses JSON body
 app.use(cors()); // Allows your React app to talk to this server
 app.use(passport.initialize());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use("/api/auth", authRoutes);

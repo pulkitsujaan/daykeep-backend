@@ -25,7 +25,11 @@ const EntrySchema = new mongoose.Schema({
   analysisCache: {
     sentiment: String,
     keywords: [String]
-  }
+  },
+  images: { 
+    type: [String], // Array of URL strings
+    default: [] 
+  },
 }, { timestamps: true });
 
 // Compound index to ensure one entry per date per user
