@@ -30,6 +30,10 @@ const EntrySchema = new mongoose.Schema({
     type: [String], // Array of URL strings
     default: [] 
   },
+  tasks: [{
+    text: { type: String, required: true },
+    isCompleted: { type: Boolean, default: false }
+  }],
 }, { timestamps: true });
 
 // Compound index to ensure one entry per date per user
