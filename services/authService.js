@@ -35,18 +35,26 @@ const registerUser = async (name, email, password) => {
   const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
   // Logic: Send Email
-  const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
-  await transporter.sendMail({
-    to: email,
-    subject: 'Verify your Journal Account',
-    // 3. Make the link clickable and clean
-    html: `
-      <h3>Welcome, ${name}!</h3>
-      <p>Please verify your account by clicking the link below:</p>
-      <a href="${verifyUrl}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
-      <p>Or copy this link: ${verifyUrl}</p>
-    `
-  });
+  try {
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
+
+      await transporter.sendMail({
+        to: email,
+        subject: 'Verify your Journal Account',
+        html: `<p>Click to verify: <a href="${verifyUrl}">Link</a></p>`
+      });
+      
+      console.log(`Verification email sent to ${email}`);
+
+  } catch (emailError) {
+      // 3. Log the error but DON'T crash the request
+      console.error("Email failed to send:", emailError.message);
+      
+      // Optional: You could delete the user here if you want to force them to try again
+      // await userRepo.deleteUser(newUser._id);
+      // throw new Error("Could not send verification email. Please try again.");
+  }
 
   return newUser;
 };
