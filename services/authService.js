@@ -16,6 +16,11 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
+  family: 4,              // <--- Force IPv4 (Prevents IPv6 timeouts)
+  connectionTimeout: 10000, 
+  greetingTimeout: 10000,
+  logger: true,           // <--- Log the handshake details
+  debug: true,             // <--- Show debug info in logs
   // 2. Add these timeouts to prevent the "hanging" issue
   connectionTimeout: 10000, 
   greetingTimeout: 10000,
