@@ -32,7 +32,6 @@ const registerUser = async (name, email, password) => {
     verificationToken,
     verificationTokenExpires: Date.now() + 3600000
   });
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
   // Logic: Send Email
   try {
