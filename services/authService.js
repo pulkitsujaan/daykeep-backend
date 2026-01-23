@@ -1,23 +1,13 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const userRepo = require('../repositories/userRepository');
 const dotenv = require('dotenv'); 
 
 dotenv.config();
 
-// Email Config
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,              // <--- Try 465
-  secure: true,           // <--- MUST be TRUE for 465
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  connectionTimeout: 10000 
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const registerUser = async (name, email, password) => {
   const existingUser = await userRepo.findByEmail(email);
@@ -38,25 +28,23 @@ const registerUser = async (name, email, password) => {
 
   // Logic: Send Email
   try {
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-      const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+     const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
 
-      await transporter.sendMail({
-        to: email,
-        subject: 'Verify your Journal Account',
-        html: `<p>Click to verify: <a href="${verifyUrl}">Link</a></p>`
-      });
-      
-      console.log(`Verification email sent to ${email}`);
+     // Send using Resend API (No timeouts!)
+     await resend.emails.send({
+       from: 'onboarding@resend.dev', // Use this test email for now
+       to: email,
+       subject: 'Verify your Journal Account',
+       html: `<p>Click here: <a href="${verifyUrl}">Verify</a></p>`
+     });
 
-  } catch (emailError) {
-      // 3. Log the error but DON'T crash the request
-      console.error("Email failed to send:", emailError.message);
-      
+   } catch (error) {
+     console.error("Email Error:", error);
+   }
       // Optional: You could delete the user here if you want to force them to try again
       // await userRepo.deleteUser(newUser._id);
       // throw new Error("Could not send verification email. Please try again.");
-  }
 
   return newUser;
 };
