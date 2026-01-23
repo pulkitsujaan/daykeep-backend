@@ -1,4 +1,5 @@
 const authService = require('../services/authService');
+const userService = require('../services/userService');
 
 const register = async (req, res) => {
   try {
@@ -29,4 +30,21 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, verify, login };
+const updateUser = async (req, res) => {
+  try {
+    const { userId, profilePicture } = req.body;
+    
+    if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Delegate to Service Layer
+    const updatedUser = await userService.updateUserProfile(userId, profilePicture);
+    
+    res.json(updatedUser);
+  } catch (err) {
+    console.error("Update User Error:", err); // Log error to terminal
+    res.status(500).json({ message: err.message });
+  }
+};  
+module.exports = { register, verify, login, updateUser };

@@ -22,10 +22,19 @@ const markVerified = async (user) => {
   user.verificationTokenExpires = undefined;
   return await user.save();
 };
+const findById = async (id) => {
+  return await User.findById(id);
+};
+
+const save = async (user) => {
+  return await user.save();
+};
 
 module.exports = {
   findByEmail,
   findByVerificationToken,
   createUser,
-  markVerified
+  markVerified,
+  findById,
+  save
 };

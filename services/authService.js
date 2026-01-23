@@ -69,5 +69,5 @@ const loginUser = async (email, password) => {
 module.exports = {
   registerUser,
   verifyEmail,
-  loginUser
+  loginUser,
 };

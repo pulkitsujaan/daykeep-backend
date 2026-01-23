@@ -9,6 +9,9 @@ const UserSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   verificationToken: String,
   verificationTokenExpires: Date,
+  
+  profilePicture: { type: String, default: "" }, // Current active PFP
+  profilePictureHistory: { type: [String], default: [] }
 
 }, { timestamps: true });
 
