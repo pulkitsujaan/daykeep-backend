@@ -15,7 +15,11 @@ const app = express();
 
 // Middleware
 app.use(express.json()); // Parses JSON body
-app.use(cors()); // Allows your React app to talk to this server
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true, // Allow cookies/headers if needed
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+})); // Allows your React app to talk to this server
 app.use(passport.initialize());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
