@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const userRepo = require('../repositories/userRepository');
-const dotenv = require('dotenv');
+const dotenv = require('dotenv'); 
 
 dotenv.config();
 
@@ -32,13 +32,20 @@ const registerUser = async (name, email, password) => {
     verificationToken,
     verificationTokenExpires: Date.now() + 3600000
   });
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
 
   // Logic: Send Email
-  const verifyUrl = `http://localhost:5000/api/auth/verify/${verificationToken}`;
+  const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
   await transporter.sendMail({
     to: email,
     subject: 'Verify your Journal Account',
-    html: `<p>Click to verify: <a href="${verifyUrl}">Link</a></p>`
+    // 3. Make the link clickable and clean
+    html: `
+      <h3>Welcome, ${name}!</h3>
+      <p>Please verify your account by clicking the link below:</p>
+      <a href="${verifyUrl}" style="background-color: #000; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
+      <p>Or copy this link: ${verifyUrl}</p>
+    `
   });
 
   return newUser;
