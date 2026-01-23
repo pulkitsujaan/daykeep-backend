@@ -1,13 +1,26 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const userRepo = require('../repositories/userRepository');
 const dotenv = require('dotenv'); 
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// 1. Configure Transporter (Use Port 465 for best stability on Render)
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true, // true for 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  },
+  // 2. Add these timeouts to prevent the "hanging" issue
+  connectionTimeout: 10000, 
+  greetingTimeout: 10000,
+  socketTimeout: 10000
+});
 
 const registerUser = async (name, email, password) => {
   const existingUser = await userRepo.findByEmail(email);
@@ -26,25 +39,35 @@ const registerUser = async (name, email, password) => {
     verificationTokenExpires: Date.now() + 3600000
   });
 
-  // Logic: Send Email
+  // 3. Email Logic
   try {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-     const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
+      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+      const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
 
-     // Send using Resend API (No timeouts!)
-     await resend.emails.send({
-       from: 'onboarding@resend.dev', // Use this test email for now
-       to: email,
-       subject: 'Verify your Journal Account',
-       html: `<p>Click here: <a href="${verifyUrl}">Verify</a></p>`
-     });
+      await transporter.sendMail({
+        from: `"DayKeep Journal" <${process.env.EMAIL_USER}>`, // <--- IMPORTANT
+        to: email,
+        subject: 'Verify your Journal Account',
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #000;">Welcome to DayKeep, ${name}!</h2>
+            <p>We are excited to have you start your journaling journey.</p>
+            <p>Please verify your email to secure your account:</p>
+            <br/>
+            <a href="${verifyUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify My Account</a>
+            <br/><br/>
+            <p style="font-size: 12px; color: #888;">Or copy this link: ${verifyUrl}</p>
+          </div>
+        `
+      });
+      
+      console.log(`Verification email sent to ${email}`);
 
-   } catch (error) {
-     console.error("Email Error:", error);
-   }
-      // Optional: You could delete the user here if you want to force them to try again
+  } catch (emailError) {
+      console.error("Email failed to send:", emailError);
+      // Optional: Delete user if email fails so they can try again
       // await userRepo.deleteUser(newUser._id);
-      // throw new Error("Could not send verification email. Please try again.");
+  }
 
   return newUser;
 };
