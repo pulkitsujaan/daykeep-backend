@@ -46,5 +46,24 @@ const updateUser = async (req, res) => {
     console.error("Update User Error:", err); // Log error to terminal
     res.status(500).json({ message: err.message });
   }
-};  
-module.exports = { register, verify, login, updateUser };
+};
+
+const updatePassword = async (req, res) => {
+  try {
+    const { userId, oldPassword, newPassword } = req.body;
+    
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const result = await userService.changePassword(userId, oldPassword, newPassword);
+    res.json(result);
+
+  } catch (err) {
+    // Return 400 for bad password, 500 for server errors
+    const status = err.message === 'Incorrect current password' ? 400 : 500;
+    res.status(status).json({ message: err.message });
+  }
+};
+
+module.exports = { register, verify, login, updateUser, updatePassword };
