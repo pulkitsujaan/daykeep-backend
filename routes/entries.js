@@ -3,48 +3,26 @@ const entryController = require('../controllers/entryController');
 const passport = require('passport');
 const multer = require('multer');
 const path = require('path');
+const { storage } = require('../config/cloudinary');
 
-// --- MULTER CONFIG ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Save to 'uploads' folder
-  },
-  filename: (req, file, cb) => {
-    // Unique name: timestamp + random number + extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Only images are allowed!'));
-    }
-  }
-});
+const upload = multer({ storage });
 
 // --- ROUTES ---
 
 // 1. New Upload Route (Accepts max 4 files)
-router.post('/upload', 
-  passport.authenticate('jwt', { session: false }), 
-  upload.array('images', 4), // 'images' is the form field name
-  (req, res) => {
-    try {
-      // Return the paths of the uploaded files
-      const filePaths = req.files.map(file => `/uploads/${file.filename}`);
-      res.json(filePaths);
-    } catch (err) {
-      res.status(500).json({ message: "File upload failed" });
-    }
+router.post('/upload', upload.array('images'), (req, res) => {
+  try {
+    // Cloudinary automatically handles the upload before we get here.
+    // The URLs are now available in req.files
+    const fileUrls = req.files.map(file => file.path);
+    
+    // Return the Cloudinary URLs to the frontend
+    res.json(fileUrls);
+  } catch (err) {
+    console.error("Cloudinary upload error:", err);
+    res.status(500).json({ message: "Upload failed" });
   }
-);
-
+});
 // ... existing routes
 router.get('/:userId', passport.authenticate('jwt', { session: false }), entryController.getUserEntries);
 router.post('/', passport.authenticate('jwt', { session: false }), entryController.createEntry);
