@@ -13,30 +13,28 @@ module.exports = function(passport) {
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        // 1. Check if user exists
         let user = await User.findOne({ email: profile.emails[0].value });
 
         if (user) {
-          // If user exists but has no googleId, link it (optional)
+          // User exists - Link Google Account if missing
           if (!user.googleId) {
              user.googleId = profile.id;
              await user.save();
           }
           return done(null, user);
         } else {
-          // 2. Create new user
-          const newUser = {
-            googleId: profile.id,
+          // User is NEW - Create them
+          const newUser = await User.create({
             name: profile.displayName,
             email: profile.emails[0].value,
-            isVerified: true, // Auto-verify Google users
-            password: "" // No password for OAuth users
-          };
-          user = await User.create(newUser);
-          return done(null, user);
+            googleId: profile.id,
+            isVerified: true,
+            // FIX 3: Do NOT set password to "" (empty string). Just leave it undefined.
+          });
+          return done(null, newUser);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Google Auth Error:", err); // <--- LOG ERRORS HERE
         return done(err, null);
       }
     })
