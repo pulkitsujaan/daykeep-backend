@@ -5,7 +5,10 @@ const jwt = require('jsonwebtoken');
 
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/login', session: false }), 
+  passport.authenticate('google', { 
+    failureRedirect: `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`, 
+    session: false 
+}), 
   (req, res) => {
     // Generate Token
     const payload = { id: req.user._id, name: req.user.name, googleId: req.user.googleId };
