@@ -14,7 +14,8 @@ const register = async (req, res) => {
         res.status(201).json({ 
             message: "User registered successfully", 
             user: { id: user._id, name: user.name, email: user.email },
-            token: "Bearer " + token // Send token back
+            token: "Bearer " + token, // Send token back,
+            googleId: user.googleId
         });
     } catch (err) {
         res.status(400).json({ message: err.message });
@@ -34,7 +35,10 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const result = await authService.loginUser(email, password);
-    res.json(result);
+    res.json({
+      ...result,
+      googleId: user.googleId
+    });
   } catch (err) {
     res.status(400).json({ message: err.message });
   }

@@ -8,7 +8,7 @@ router.get('/google/callback',
   passport.authenticate('google', { failureRedirect: '/login', session: false }), 
   (req, res) => {
     // Generate Token
-    const payload = { id: req.user._id, name: req.user.name };
+    const payload = { id: req.user._id, name: req.user.name, googleId: req.user.googleId };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' });
 
     // Redirect to Frontend with Token
