@@ -31,48 +31,47 @@ const registerUser = async (name, email, password) => {
   const existingUser = await userRepo.findByEmail(email);
   if (existingUser) throw new Error("Email already exists");
 
-  // Logic: Hash Password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
-  const verificationToken = crypto.randomBytes(20).toString('hex');
-
+  
+  // No verification token needed anymore
   const newUser = await userRepo.createUser({
     name,
     email,
     password: hashedPassword,
-    verificationToken,
-    verificationTokenExpires: Date.now() + 3600000
+    verificationToken: null, 
+    isVerified: true  // <--- AUTO-VERIFY HERE
   });
 
-  // 3. Email Logic
-  try {
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-      const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
+  // // 3. Email Logic
+  // try {
+  //     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  //     const verifyUrl = `${clientUrl}/verify/${verificationToken}`;
 
-      await transporter.sendMail({
-        from: `"DayKeep Journal" <${process.env.EMAIL_USER}>`, // <--- IMPORTANT
-        to: email,
-        subject: 'Verify your Journal Account',
-        html: `
-          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-            <h2 style="color: #000;">Welcome to DayKeep, ${name}!</h2>
-            <p>We are excited to have you start your journaling journey.</p>
-            <p>Please verify your email to secure your account:</p>
-            <br/>
-            <a href="${verifyUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify My Account</a>
-            <br/><br/>
-            <p style="font-size: 12px; color: #888;">Or copy this link: ${verifyUrl}</p>
-          </div>
-        `
-      });
+  //     await transporter.sendMail({
+  //       from: `"DayKeep Journal" <${process.env.EMAIL_USER}>`, // <--- IMPORTANT
+  //       to: email,
+  //       subject: 'Verify your Journal Account',
+  //       html: `
+  //         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+  //           <h2 style="color: #000;">Welcome to DayKeep, ${name}!</h2>
+  //           <p>We are excited to have you start your journaling journey.</p>
+  //           <p>Please verify your email to secure your account:</p>
+  //           <br/>
+  //           <a href="${verifyUrl}" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Verify My Account</a>
+  //           <br/><br/>
+  //           <p style="font-size: 12px; color: #888;">Or copy this link: ${verifyUrl}</p>
+  //         </div>
+  //       `
+  //     });
       
-      console.log(`Verification email sent to ${email}`);
+  //     console.log(`Verification email sent to ${email}`);
 
-  } catch (emailError) {
-      console.error("Email failed to send:", emailError);
-      // Optional: Delete user if email fails so they can try again
-      // await userRepo.deleteUser(newUser._id);
-  }
+  // } catch (emailError) {
+  //     console.error("Email failed to send:", emailError);
+  //     // Optional: Delete user if email fails so they can try again
+  //     // await userRepo.deleteUser(newUser._id);
+  // }
 
   return newUser;
 };

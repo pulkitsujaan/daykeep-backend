@@ -1,26 +1,41 @@
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const mongoose = require('mongoose');
-const User = require('../models/User'); // Check this path matches your folder structure!
-const dotenv = require('dotenv');
+const User = require('../models/User'); // Adjust path to your User model
 
-dotenv.config();
-
-const opts = {};
-opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = process.env.JWT_SECRET; // Ensure this exists in .env
-
-module.exports = passport => {
+module.exports = function(passport) {
   passport.use(
-    new JwtStrategy(opts, async (jwt_payload, done) => {
+    new GoogleStrategy({
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: "/api/auth/google/callback" // Relative path works if proxy is set, otherwise use full URL
+    },
+    async (accessToken, refreshToken, profile, done) => {
       try {
-        const user = await User.findById(jwt_payload.id);
+        // 1. Check if user exists
+        let user = await User.findOne({ email: profile.emails[0].value });
+
         if (user) {
+          // If user exists but has no googleId, link it (optional)
+          if (!user.googleId) {
+             user.googleId = profile.id;
+             await user.save();
+          }
+          return done(null, user);
+        } else {
+          // 2. Create new user
+          const newUser = {
+            googleId: profile.id,
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            isVerified: true, // Auto-verify Google users
+            password: "" // No password for OAuth users
+          };
+          user = await User.create(newUser);
           return done(null, user);
         }
-        return done(null, false);
       } catch (err) {
         console.error(err);
+        return done(err, null);
       }
     })
   );
