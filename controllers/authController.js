@@ -1,6 +1,6 @@
 const authService = require('../services/authService');
 const userService = require('../services/userService');
-
+const jwt = require('jsonwebtoken');
 const register = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -15,7 +15,6 @@ const register = async (req, res) => {
             message: "User registered successfully", 
             user: { id: user._id, name: user.name, email: user.email },
             token: "Bearer " + token, // Send token back,
-            googleId: user.googleId
         });
     } catch (err) {
         res.status(400).json({ message: err.message });
@@ -35,10 +34,7 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
     const result = await authService.loginUser(email, password);
-    res.json({
-      ...result,
-      googleId: user.googleId
-    });
+    res.json(result);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
