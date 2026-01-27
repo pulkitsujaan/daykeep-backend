@@ -2,12 +2,8 @@ const mongoose = require('mongoose');
 
 const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
-  password: { type: String },
+  password: { type: String,required: true },
   name: { type: String, default: "User" },
-  googleId: {
-    type: String,
-    required: false
-  },
   
   // Verification Fields
   isVerified: { type: Boolean, default: false },
